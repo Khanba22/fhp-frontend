@@ -102,7 +102,7 @@ export function MultiSelectDropdown({
     <div className={`relative inline-block text-left ${className}`}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between w-128 px-4 py-2 text-sm font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none transition-all duration-200 min-h-[40px]"
+        className="flex items-center justify-between w-auto px-4 py-2 text-sm font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none transition-all duration-200 min-h-[40px]"
       >
         <div className="flex flex-wrap gap-1 flex-1">
           {value.length === 0 ? (

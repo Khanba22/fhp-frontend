@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2, CheckCircle } from 'lucide-react';
+import { Loader2} from 'lucide-react';
 
 interface LoadingPopupProps {
   isVisible: boolean;
@@ -96,7 +96,7 @@ export default function LoadingPopup({ isVisible, jobId, onComplete, onError }: 
 
         {/* Description */}
         <p className="text-base mb-6" style={{ color: 'var(--color-medium-gray)' }}>
-          Our AI is carefully examining your document for grammar and technical issues. This usually takes 2-3 minutes.
+          Our AI is carefully examining your document for grammar and technical issues. This usually takes 2-3 minutes. ({jobStatus.status})
         </p>
 
         {/* Processing Steps */}
@@ -128,7 +128,7 @@ export default function LoadingPopup({ isVisible, jobId, onComplete, onError }: 
 
         {/* Instruction */}
         <p className="text-sm mt-4" style={{ color: 'var(--color-light-gray)' }}>
-          Please don't close this window
+          Please don&apos;t close this window
         </p>
       </div>
     </div>

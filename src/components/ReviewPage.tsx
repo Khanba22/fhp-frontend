@@ -5,8 +5,6 @@ import { WordChange } from "@/interface/WordChange";
 
 const ReviewPage = ({
   contentBlocks,
-  activeTab,
-  setActiveTab,
   loading,
   selectedFilter,
   setSelectedFilter,

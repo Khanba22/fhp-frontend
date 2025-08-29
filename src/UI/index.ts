@@ -7,3 +7,4 @@ export { default as Navbar } from './Navbar';
 export { default as LoadingPopup } from './LoadingPopup';
 export { default as ErrorScreen } from './ErrorScreen';
 export { BasicDropdown, MultiSelectDropdown } from './DropDowns';
+export { default as RagTable } from '../components/RagTable';

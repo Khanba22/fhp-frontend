@@ -37,6 +37,28 @@ export async function GET() {
       proposed_revision: "A building-wide fire alarm panel and system are located within the data room adjacent to reception, with a repeater panel in the entrance lobby.",
       justification: "This synthesised revision combines multiple fixes: hyphenates 'building-wide', corrects subject-verb agreement ('panel and system are'), improves sentence structure and punctuation, and uses the more formal 'indicated' instead of 'shown'. This results in a clearer and more professional statement.",
       edit_type: "Grammar, Professionalism & Presentation, Formatting"
+    },
+    // RAG Data for testing
+    {
+      section_name: "Page 6, Executive Summary (Section 2)",
+      original_text: "-",
+      proposed_revision: "Heating, Cooling & Ventilation: Safety change to Green, Operation / Cost change to Amber",
+      justification: "Safety is Green because new boilers are in place and working, radiators are in 'fair condition', and chillers are also in 'fair condition' (Page 8). While water quality certification was not available, it's only 'possible' that it's poor (Page 5), not a confirmed direct safety hazard. Operation/Cost is Amber due to old 'Fan coil units' (circa 1980) having a 'history of failures' which will incur 'retrofit and modify' costs (Page 8), and the phased-out R404A refrigerant gases will lead to increased future costs (Page 5).",
+      edit_type: "RAG suggestion (lenient)"
+    },
+    {
+      section_name: "Page 7, Survey Report (Section 3)",
+      original_text: "-",
+      proposed_revision: "Cooling System / BMS: Safety change to Red, Operation / Cost change to Amber",
+      justification: "Safety is Red due to critical system failures and potential hazards. Operation/Cost is Amber due to replacement needs and maintenance requirements.",
+      edit_type: "RAG suggestion (critical)"
+    },
+    {
+      section_name: "Page 8, Survey Report (Section 3)",
+      original_text: "-",
+      proposed_revision: "Electrical Supply & Distribution: Safety change to Amber, Operation / Cost change to Green",
+      justification: "Safety is Amber due to aging infrastructure concerns. Operation/Cost is Green due to good condition and efficient operation.",
+      edit_type: "RAG suggestion (lenient)"
     }
   ];
 

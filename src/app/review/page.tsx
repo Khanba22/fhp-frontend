@@ -11,9 +11,9 @@ import {
 import ReviewPage from "@/components/ReviewPage";
 import { ContentBlock } from "@/interface/ContentBlock";
 import { WordChange } from "@/interface/WordChange";
-import RagTable from "@/components/RagTable";
+import { RagTable } from "@/UI";
 import ExecutiveSummary from "@/components/ExecutiveSummary";
-  
+
 export default function ReviewSummaryPage() {
   const [activeTab, setActiveTab] = useState<
     "content-suggestions" | "rag-table" | "executive-summary"
@@ -131,7 +131,11 @@ export default function ReviewSummaryPage() {
         contentBlocks={contentBlocks}
         activeTab={activeTab}
         setLoading={setLoading}
-        setActiveTab={(tab: string) => setActiveTab(tab as "content-suggestions" | "rag-table" | "executive-summary")}
+        setActiveTab={(tab: string) =>
+          setActiveTab(
+            tab as "content-suggestions" | "rag-table" | "executive-summary"
+          )
+        }
         loading={loading}
         selectedFilter={selectedFilter}
         setSelectedFilter={setSelectedFilter}
@@ -140,28 +144,21 @@ export default function ReviewSummaryPage() {
         createInlineText={createInlineText}
       />
     ),
-    "rag-table": (
-      <RagTable
-        // activeTab={activeTab}
-        // setActiveTab={setActiveTab}
-        // loading={loading}
-        // selectedFilter={selectedFilter}
-        // setSelectedFilter={setSelectedFilter}
-        // selectedTags={selectedTags}
-        // setSelectedTags={setSelectedTags}
-        // createInlineText={createInlineText}
-      />
-    ),
+         "rag-table": (
+       <RagTable
+         ragData={parsedData.ragSuggestions}
+       />
+     ),
     "executive-summary": (
       <ExecutiveSummary
-        // activeTab={activeTab}
-        // setActiveTab={(tab: string) => setActiveTab(tab as "content-suggestions" | "rag-table" | "executive-summary")}
-        // loading={loading}
-        // selectedFilter={selectedFilter}
-        // setSelectedFilter={setSelectedFilter}
-        // selectedTags={selectedTags}
-        // setSelectedTags={setSelectedTags}
-        // createInlineText={createInlineText}
+      // activeTab={activeTab}
+      // setActiveTab={(tab: string) => setActiveTab(tab as "content-suggestions" | "rag-table" | "executive-summary")}
+      // loading={loading}
+      // selectedFilter={selectedFilter}
+      // setSelectedFilter={setSelectedFilter}
+      // selectedTags={selectedTags}
+      // setSelectedTags={setSelectedTags}
+      // createInlineText={createInlineText}
       />
     ),
   };
@@ -172,7 +169,54 @@ export default function ReviewSummaryPage() {
       <Header currentStep="review" />
 
       {/* Main content */}
-      {selectedTab[activeTab]}
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        {/* Page title */}
+        <div className="text-center mb-8">
+          <h1
+            className="text-4xl font-bold mb-4"
+            style={{ color: "var(--color-dark-gray)" }}
+          >
+            Review and Summary
+          </h1>
+        </div>
+
+        {/* Primary Action Buttons/Tabs */}
+        <div className="flex space-x-4 mb-8">
+          <button
+            onClick={() => setActiveTab("content-suggestions")}
+            className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+              activeTab === "content-suggestions"
+                ? "bg-blue-100 text-blue-800"
+                : "bg-gray-800 text-white hover:bg-gray-700"
+            }`}
+          >
+            Content Suggestions
+          </button>
+          <button
+            onClick={() => setActiveTab("rag-table")}
+            className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+              activeTab === "rag-table"
+                ? "bg-blue-100 text-blue-800"
+                : "bg-gray-800 text-white hover:bg-gray-700"
+            }`}
+          >
+            RAG TABLE
+          </button>
+          <button
+            onClick={() => setActiveTab("executive-summary")}
+            className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+              activeTab === "executive-summary"
+                ? "bg-blue-100 text-blue-800"
+                : "bg-gray-800 text-white hover:bg-gray-700"
+            }`}
+          >
+            Executive Summary
+          </button>
+        </div>
+
+        {/* Filter and Tags */}
+        {selectedTab[activeTab]}
+      </main>
     </div>
   );
 }

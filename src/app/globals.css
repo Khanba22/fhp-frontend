@@ -6,16 +6,32 @@
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: #ffffff;
+  --color-primary: #283E49;
+  --color-accent: #7ED8E2;
+  --color-secondary: #F5F5F5;
+  --color-tertiary: #E5E5E5;
+  --color-quaternary: #D5D5D5;
+  --color-quinary: #C5C5C5;
+  --color-senary: #B5B5B5;
+  --color-septenary: #A5A5A5;
+  --color-light-blue: #F0F8FF;
+  --color-light-blue-border: #E6F3FF;
+  --color-dark-blue: #1E3A8A;
+  --color-dark-gray: #374151;
+  --color-medium-gray: #6B7280;
+  --color-light-gray: #9CA3AF;
+  --color-input-bg: #F9FAFB;
+  --color-button-gradient-from: #4B5563;
+  --color-button-gradient-to: #9CA3AF;
+  --font-sans: 'Montserrat', Arial, Helvetica, sans-serif;
+  --font-mono: 'Montserrat', Arial, Helvetica, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #ededed;
+    --foreground: #283E49;
   }
 }
 

@@ -23,7 +23,14 @@
   --color-light-gray: #9CA3AF;
   --color-input-bg: #F9FAFB;
   --color-button-gradient-from: #4B5563;
-  --color-button-gradient-to: #9CA3AF;
+  --color-button-gradient-to: #4A5360;
+  --color-success: #28A745;
+  --color-warning: #FF8C00;
+  --color-info: #007BFF;
+  --color-light-green: #E8F5E8;
+  --color-orange: #F97316;
+  --color-indigo: #6366F1;
+  --color-pink: #EC4899;
   --font-sans: 'Montserrat', Arial, Helvetica, sans-serif;
   --font-mono: 'Montserrat', Arial, Helvetica, sans-serif;
 }

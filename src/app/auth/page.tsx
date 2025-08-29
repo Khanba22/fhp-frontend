@@ -2,9 +2,13 @@
 
 import { useState } from 'react';
 import { Eye, EyeOff, User, Lock } from 'lucide-react';
-import Image from 'next/image';
+import Image from 'next/image'; 
+import { useAuth } from '@/contexts/useAuth';
+import { useRouter } from 'next/navigation';
 
 export default function AuthPage() {
+  const { login, isAuthenticating, error } = useAuth();
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [formData, setFormData] = useState({
@@ -22,9 +26,16 @@ export default function AuthPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
+    login();
     console.log('Login attempt:', formData);
-    
+
+    // TODO: Implement login logic here
+
+    // If login is successful, redirect to the dashboard
+    router.push('/');
+
+    // If login fails, set error message
+    // setError('Invalid username or password');
   };
 
   return (

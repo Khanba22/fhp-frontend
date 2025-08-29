@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/useAuth';
 import { useRouter } from 'next/navigation';
 
 export default function AuthPage() {
-  const { login, isAuthenticating, error } = useAuth();
+  const { login } = useAuth();
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);

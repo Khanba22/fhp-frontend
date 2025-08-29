@@ -207,6 +207,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 
     mediaQuery.addEventListener("change", handleSystemThemeChange)
     return () => mediaQuery.removeEventListener("change", handleSystemThemeChange)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMounted, customLightTheme, customDarkTheme])
 
   // Update colors when custom themes change
@@ -218,6 +219,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 
     setColors(newColors)
     applyThemeToDocument(newColors)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customLightTheme, customDarkTheme, theme, isMounted])
 
   return (

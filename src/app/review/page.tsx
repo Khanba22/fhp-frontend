@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { Header, BasicDropdown, MultiSelectDropdown } from '@/UI';
-import { AlertTriangle, CheckCircle, FileText } from 'lucide-react';
 import { parseCSVData, extractEditTypes, createWordChanges, CSVRow } from '@/utils/csvParser';
 
 interface ContentBlock {
@@ -113,7 +112,7 @@ export default function ReviewSummaryPage() {
       case 'formatting':
         return 'text-indigo-600';
       default:
-        return 'text-gray-600';
+        return 'text-cyan-600';
     }
   };
 
@@ -127,7 +126,7 @@ export default function ReviewSummaryPage() {
     sortedChanges.forEach(change => {
       const regex = new RegExp(change.original, 'gi');
       const colorClass = getWordChangeColor(change.type);
-      result = result.replace(regex, `<span class="line-through ${colorClass}">${change.original}</span> <span class="font-medium ${colorClass}">${change.corrected}</span>`);
+      result = result.replace(regex, `<span class="line-through ${colorClass}">${change.original}</span> <span class="font-medium  ${colorClass}">${change.corrected}</span>`);
     });
     
     return result;

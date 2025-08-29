@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Header, FileUpload, Guidelines, LoadingPopup, ErrorScreen } from '@/UI';
 import { useJobStatus } from '@/hooks/useJobStatus';
 

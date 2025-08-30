@@ -1,11 +1,4 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/api/job/start/route": "app/api/job/start/route.js",
-  "/api/job/status/route": "app/api/job/status/route.js",
-  "/api/review-data/route": "app/api/review-data/route.js",
-  "/favicon.ico/route": "app/favicon.ico/route.js",
   "/page": "app/page.js",
-  "/projects/page": "app/projects/page.js",
-  "/auth/page": "app/auth/page.js",
   "/review/page": "app/review/page.js"
 }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { RagRow } from '@/utils/csvParser';
+import { BasicDropdown, MultiSelectDropdown } from '@/UI';
 
 interface RagAssessment {
   safety: 'Red' | 'Amber' | 'Green';
@@ -161,32 +162,6 @@ export default function RagTable({ ragData = [] }: RagTableProps) {
 
   return (
     <div className="space-y-6">
-      {/* Filter and Tags section */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Filter by Page Section
-          </label>
-          <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option>All Pages</option>
-            <option>Introduction</option>
-            <option>Executive Summary</option>
-            <option>Survey Report</option>
-          </select>
-        </div>
-        <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Filter by Error Types
-          </label>
-          <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option>All Error Types</option>
-            <option>Safety Issues</option>
-            <option>Cost Issues</option>
-            <option>Critical Issues</option>
-          </select>
-        </div>
-      </div>
-
       {/* RAG Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">

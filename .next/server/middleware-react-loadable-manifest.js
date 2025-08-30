@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{}"
+self.__REACT_LOADABLE_MANIFEST='{"..\\\\node_modules\\\\next\\\\dist\\\\client\\\\index.js -> ../pages/_app":{"id":5139,"files":["static/chunks/520.68a746be910c3a29.js"]},"..\\\\node_modules\\\\next\\\\dist\\\\client\\\\index.js -> ../pages/_error":{"id":1646,"files":["static/chunks/646.f342b7cffc01feb0.js"]},"contexts\\\\useEditor.tsx -> @/utils/csvParser":{"id":3289,"files":["static/chunks/289.c4b1ea3afe82e7d0.js"]}}';

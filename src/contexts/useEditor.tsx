@@ -189,6 +189,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     if (csvData) {
       parseCSVData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [csvData]);
 
   const value: EditorContextType = {

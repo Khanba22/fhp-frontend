@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { RagRow } from '@/utils/csvParser';
 import { useEditor } from '@/contexts/useEditor';
 
 interface RagAssessment {
@@ -16,9 +15,7 @@ interface SystemAssessment {
   lenient: RagAssessment;
 }
 
-interface RagTableProps {
-  ragData?: RagRow[];
-}
+
 
 const getStatusColor = (status: 'Red' | 'Amber' | 'Green') => {
   switch (status) {

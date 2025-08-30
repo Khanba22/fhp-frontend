@@ -14,8 +14,8 @@ export default function ReviewSummaryPage() {
   
   const { 
     reviewChanges, 
-    ragTableData, 
-    executiveSummaryData,
+    // ragTableData, 
+    // executiveSummaryData,
     selectedFilter, 
     selectedTags, 
     setSelectedFilter, 

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { RagRow } from '@/utils/csvParser';
-import { BasicDropdown, MultiSelectDropdown } from '@/UI';
+import { useEditor } from '@/contexts/useEditor';
 
 interface RagAssessment {
   safety: 'Red' | 'Amber' | 'Green';
@@ -33,7 +33,10 @@ const getStatusColor = (status: 'Red' | 'Amber' | 'Green') => {
   }
 };
 
-export default function RagTable({ ragData = [] }: RagTableProps) {
+export default function RagTable() {
+  const { ragTableData } = useEditor();
+  const ragData = ragTableData;
+  
   const [activeJustification, setActiveJustification] = useState<string | null>(null);
   const [hoveredItem, setHoveredItem] = useState<{ text: string; x: number; y: number } | null>(null);
 

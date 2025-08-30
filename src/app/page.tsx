@@ -3,11 +3,9 @@
 import { useState } from 'react';
 import { Header, FileUpload, Guidelines, LoadingPopup, ErrorScreen } from '@/UI';
 import { useJobStatus } from '@/hooks/useJobStatus';
+import { useEditor } from '@/contexts/useEditor';
 
 export default function DocumentUploadPage() {
-  const [draftReport, setDraftReport] = useState<File | null>(null);
-  const [coverDocument, setCoverDocument] = useState<File | null>(null);
-  
   const { 
     isLoading, 
     showLoadingPopup, 
@@ -18,6 +16,11 @@ export default function DocumentUploadPage() {
     retryJob, 
     goBackToUpload 
   } = useJobStatus();
+  
+  const { setUploadedFile } = useEditor();
+  
+  const [draftReport, setDraftReport] = useState<File | null>(null);
+  const [coverDocument, setCoverDocument] = useState<File | null>(null);
 
   const guidelines = [
     {
@@ -47,6 +50,9 @@ export default function DocumentUploadPage() {
       alert('Please upload a draft report to continue.');
       return;
     }
+
+    // Store the uploaded file in the context
+    setUploadedFile(draftReport);
 
     // Create FormData for file upload
     const formData = new FormData();

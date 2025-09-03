@@ -2,11 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-
-interface JobStatus {
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-  message?: string;
-}
+import { jobApi, JobStatus } from '@/utils/api';
 
 interface UseJobStatusReturn {
   isLoading: boolean;
@@ -42,13 +38,13 @@ export function useJobStatus(): UseJobStatusReturn {
 
     const checkJobStatus = async () => {
       try {
-        const response = await fetch(`/api/job/status?jobId=${jobId}`);
+        const result = await jobApi.getStatus(jobId);
         
-        if (!response.ok) {
-          throw new Error('Failed to check job status');
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to check job status');
         }
 
-        const data: JobStatus = await response.json();
+        const data: JobStatus = result.data!;
         
         // Update localStorage
         localStorage.setItem(JOB_STATUS_KEY, JSON.stringify(data));
@@ -94,16 +90,13 @@ export function useJobStatus(): UseJobStatusReturn {
       setIsLoading(true);
       
       // Call the backend API to start the job
-      const response = await fetch('/api/job/start', {
-        method: 'POST',
-        body: files,
-      });
+      const result = await jobApi.start(files);
 
-      if (!response.ok) {
-        throw new Error('Failed to start job');
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to start job');
       }
 
-      const data = await response.json();
+      const data = result.data!;
       const newJobId = data.jobId;
 
       if (!newJobId) {

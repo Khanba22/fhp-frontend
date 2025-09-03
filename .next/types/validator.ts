@@ -77,6 +77,24 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   handler satisfies AppPageConfig<"/review">
 }
 
+// Validate ../../src/app/api/analysis/route.ts
+{
+  const handler = {} as typeof import("../../src/app/api/analysis/route.js")
+  handler satisfies RouteHandlerConfig<"/api/analysis">
+}
+
+// Validate ../../src/app/api/health/route.ts
+{
+  const handler = {} as typeof import("../../src/app/api/health/route.js")
+  handler satisfies RouteHandlerConfig<"/api/health">
+}
+
+// Validate ../../src/app/api/job/delete/route.ts
+{
+  const handler = {} as typeof import("../../src/app/api/job/delete/route.js")
+  handler satisfies RouteHandlerConfig<"/api/job/delete">
+}
+
 // Validate ../../src/app/api/job/start/route.ts
 {
   const handler = {} as typeof import("../../src/app/api/job/start/route.js")
@@ -87,6 +105,18 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
 {
   const handler = {} as typeof import("../../src/app/api/job/status/route.js")
   handler satisfies RouteHandlerConfig<"/api/job/status">
+}
+
+// Validate ../../src/app/api/jobs/route.ts
+{
+  const handler = {} as typeof import("../../src/app/api/jobs/route.js")
+  handler satisfies RouteHandlerConfig<"/api/jobs">
+}
+
+// Validate ../../src/app/api/pdf/route.ts
+{
+  const handler = {} as typeof import("../../src/app/api/pdf/route.js")
+  handler satisfies RouteHandlerConfig<"/api/pdf">
 }
 
 // Validate ../../src/app/api/review-data/route.ts

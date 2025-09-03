@@ -21,6 +21,7 @@ export default function DocumentUploadPage() {
   
   const [draftReport, setDraftReport] = useState<File | null>(null);
   const [coverDocument, setCoverDocument] = useState<File | null>(null);
+  const [apiKey, setApiKey] = useState<string>('');
 
   const guidelines = [
     {
@@ -41,7 +42,7 @@ export default function DocumentUploadPage() {
       title: 'Document Security',
       description: 'All uploaded documents are encrypted and processed securely. Files are automatically deleted after 30 days.'
     }
-  ];
+  ]; 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,12 +52,18 @@ export default function DocumentUploadPage() {
       return;
     }
 
+    if (!apiKey) {
+      alert('Please enter your Gemini API key to continue.');
+      return;
+    }
+
     // Store the uploaded file in the context
     setUploadedFile(draftReport);
 
     // Create FormData for file upload
     const formData = new FormData();
     formData.append('draftReport', draftReport, draftReport.name);
+    formData.append('apiKey', apiKey);
     
     if (coverDocument) {
       formData.append('coverDocument', coverDocument, coverDocument.name);
@@ -101,6 +108,25 @@ export default function DocumentUploadPage() {
 
         {/* Document upload form */}
         <form onSubmit={handleSubmit} className="mb-12">
+          {/* API Key Input */}
+          <div className="mb-8">
+            <label htmlFor="apiKey" className="block text-sm font-medium mb-2" style={{ color: 'var(--color-dark-gray)' }}>
+              Gemini API Key *
+            </label>
+            <input
+              type="password"
+              id="apiKey"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder="Enter your Gemini API key"
+              className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+            <p className="text-sm mt-1" style={{ color: 'var(--color-medium-gray)' }}>
+              Get your API key from <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Google AI Studio</a>
+            </p>
+          </div>
+
           <div className="grid lg:grid-cols-2 gap-8 mb-8">
             {/* Draft Report Upload */}
             <FileUpload

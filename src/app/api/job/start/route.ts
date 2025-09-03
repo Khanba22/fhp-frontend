@@ -1,20 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const BACKEND_BASE_URL = process.env.BACKEND_BASE_URL || 'http://localhost:8000';
+
 export async function POST(request: NextRequest) {
   try {
-    // Mock job creation - in real implementation, this would process the files
-    // and create a job in your backend system
+    const formData = await request.formData();
+    const draftReport = formData.get('draftReport') as File;
+    const coverDocument = formData.get('coverDocument') as File;
+    const apiKey = formData.get('apiKey') as string || process.env.GEMINI_API_KEY || '';
+
+    if (!draftReport) {
+      return NextResponse.json(
+        { success: false, error: 'Draft report is required' },
+        { status: 400 }
+      );
+    }
+
+    if (!apiKey) {
+      return NextResponse.json(
+        { success: false, error: 'API key is required' },
+        { status: 400 }
+      );
+    }
+
+    // Create FormData for backend
+    const backendFormData = new FormData();
+    backendFormData.append('draft_report', draftReport);
     
-    // Generate a random job ID
-    const jobId = `job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Add cover document if provided
+    if (coverDocument && coverDocument.size > 0) {
+      backendFormData.append('cover_document', coverDocument);
+    }
     
-    // Simulate some processing time
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    backendFormData.append('api_key', apiKey);
+    backendFormData.append('model', 'gemini-2.5-flash');
+
+    // Call backend API
+    const response = await fetch(`${BACKEND_BASE_URL}/api/upload`, {
+      method: 'POST',
+      body: backendFormData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `Backend error: ${response.status}`);
+    }
+
+    const data = await response.json();
     
     return NextResponse.json({
       success: true,
-      jobId: jobId,
-      message: 'Job started successfully'
+      jobId: data.job_id,
+      message: data.message || 'Job started successfully'
     });
     
   } catch (error) {
@@ -22,7 +59,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { 
         success: false, 
-        error: 'Failed to start job' 
+        error: error instanceof Error ? error.message : 'Failed to start job' 
       },
       { status: 500 }
     );

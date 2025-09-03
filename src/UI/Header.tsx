@@ -21,20 +21,14 @@ export default function Header({ currentStep, className = '' }: HeaderProps) {
       <div className="h-1 w-full" style={{ backgroundColor: 'var(--color-light-blue-border)' }}></div>
       
       {/* Header content */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-          {/* Logo */}
-          <div className="flex items-center">
-            <Image src="/logo.png" alt="FHP Logo" width={64} height={64} />
-          </div>
-          
+      <div className="max-w-7xl mx-auto px-4 py-2">
+       
           {/* Navigation Steps */}
           <ProgressSteps 
             steps={steps} 
             currentStep={currentStep}
             className="lg:ml-auto"
           />
-        </div>
       </div>
     </header>
   );

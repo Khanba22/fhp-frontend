@@ -1,9 +1,10 @@
 {
-  "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/api/review-data/route": "app/api/review-data/route.js",
+  "/api/jobs/route": "app/api/jobs/route.js",
   "/api/job/start/route": "app/api/job/start/route.js",
   "/api/job/status/route": "app/api/job/status/route.js",
   "/page": "app/page.js",
+  "/upload/page": "app/upload/page.js",
   "/review/page": "app/review/page.js",
-  "/auth/page": "app/auth/page.js"
+  "/results/page": "app/results/page.js",
+  "/help/page": "app/help/page.js"
 }

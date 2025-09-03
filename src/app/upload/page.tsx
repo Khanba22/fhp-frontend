@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Header, FileUpload, Guidelines, LoadingPopup, ErrorScreen } from '@/UI';
 import { useJobStatus } from '@/hooks/useJobStatus';
 import { useEditor } from '@/contexts/useEditor';
@@ -14,14 +14,19 @@ export default function DocumentUploadPage() {
     startJob, 
     jobId, 
     retryJob, 
-    goBackToUpload 
+    goBackToUpload,
+    clearJobData
   } = useJobStatus();
   
   const { setUploadedFile } = useEditor();
   
   const [draftReport, setDraftReport] = useState<File | null>(null);
   const [coverDocument, setCoverDocument] = useState<File | null>(null);
-  const [apiKey, setApiKey] = useState<string>('');
+
+  // Clear any existing job data when upload page loads
+  useEffect(() => {
+    clearJobData();
+  }, [clearJobData]);
 
   const guidelines = [
     {
@@ -52,18 +57,12 @@ export default function DocumentUploadPage() {
       return;
     }
 
-    if (!apiKey) {
-      alert('Please enter your Gemini API key to continue.');
-      return;
-    }
-
     // Store the uploaded file in the context
     setUploadedFile(draftReport);
 
     // Create FormData for file upload
     const formData = new FormData();
     formData.append('draftReport', draftReport, draftReport.name);
-    formData.append('apiKey', apiKey);
     
     if (coverDocument) {
       formData.append('coverDocument', coverDocument, coverDocument.name);
@@ -108,24 +107,6 @@ export default function DocumentUploadPage() {
 
         {/* Document upload form */}
         <form onSubmit={handleSubmit} className="mb-12">
-          {/* API Key Input */}
-          <div className="mb-8">
-            <label htmlFor="apiKey" className="block text-sm font-medium mb-2" style={{ color: 'var(--color-dark-gray)' }}>
-              Gemini API Key *
-            </label>
-            <input
-              type="password"
-              id="apiKey"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="Enter your Gemini API key"
-              className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-            <p className="text-sm mt-1" style={{ color: 'var(--color-medium-gray)' }}>
-              Get your API key from <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Google AI Studio</a>
-            </p>
-          </div>
 
           <div className="grid lg:grid-cols-2 gap-8 mb-8">
             {/* Draft Report Upload */}
@@ -164,7 +145,7 @@ export default function DocumentUploadPage() {
                 color: 'white'
               }}
             >
-              {isLoading ? 'Starting Job...' : 'Continue to Review'}
+              {isLoading ? 'Starting Analysis...' : 'Start Analysis'}
             </button>
           </div>
         </form>

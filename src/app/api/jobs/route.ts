@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     
     // Transform the data to match frontend expectations
     const jobs = data.map((job: any) => ({
-      jobId: job.job_id,
+      job_id: job.job_id,
       status: job.status,
       progress: job.progress || 0,
       message: job.message || '',

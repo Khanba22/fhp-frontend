@@ -150,7 +150,7 @@ const ReviewPage = ({
                     <div
                       className="text-sm text-gray-700 leading-relaxed"
                       dangerouslySetInnerHTML={{
-                        __html: createInlineText(
+                        __html: block.diffOutput || createInlineText(
                           block.originalText,
                           block.wordLevelChanges
                         ),

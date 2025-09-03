@@ -7,18 +7,10 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const draftReport = formData.get('draftReport') as File;
     const coverDocument = formData.get('coverDocument') as File;
-    const apiKey = formData.get('apiKey') as string || process.env.GEMINI_API_KEY || '';
 
     if (!draftReport) {
       return NextResponse.json(
         { success: false, error: 'Draft report is required' },
-        { status: 400 }
-      );
-    }
-
-    if (!apiKey) {
-      return NextResponse.json(
-        { success: false, error: 'API key is required' },
         { status: 400 }
       );
     }
@@ -31,9 +23,6 @@ export async function POST(request: NextRequest) {
     if (coverDocument && coverDocument.size > 0) {
       backendFormData.append('cover_document', coverDocument);
     }
-    
-    backendFormData.append('api_key', apiKey);
-    backendFormData.append('model', 'gemini-2.5-flash');
 
     // Call backend API
     const response = await fetch(`${BACKEND_BASE_URL}/api/upload`, {
@@ -50,8 +39,11 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({
       success: true,
-      jobId: data.job_id,
-      message: data.message || 'Job started successfully'
+      job_id: data.job_id,
+      status: data.status,
+      message: data.message,
+      pdf_path: data.pdf_path,
+      fact_file_path: data.fact_file_path
     });
     
   } catch (error) {

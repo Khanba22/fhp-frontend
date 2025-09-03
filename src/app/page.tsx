@@ -27,10 +27,16 @@ const HomePage = () => {
     pending: 0
   });
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const fetchProjects = useCallback(async () => {
+  const fetchProjects = useCallback(async (isAutoRefresh = false) => {
     try {
-      setLoading(true);
+      if (isAutoRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+      
       const result = await jobApi.list(20); // Get more projects for the dashboard
       
       if (result.success && result.data) {
@@ -39,7 +45,7 @@ const HomePage = () => {
         // Transform jobs to project data
         const projectData: ProjectData[] = jobs.map((job: JobStatus) => ({
           ...job,
-          projectName: generateProjectName(job.jobId),
+          projectName: generateProjectName(job.job_id),
           type: getProjectType(),
           created: formatDate(job.created_at || new Date().toISOString())
         }));
@@ -60,11 +66,21 @@ const HomePage = () => {
       console.error('Error fetching projects:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, []);
 
   useEffect(() => {
     fetchProjects();
+  }, [fetchProjects]);
+
+  // Auto-refresh jobs every 10 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchProjects(true); // Pass true for auto-refresh
+    }, 10000); // 10 seconds
+
+    return () => clearInterval(interval);
   }, [fetchProjects]);
 
   const generateProjectName = (jobId: string): string => {
@@ -138,6 +154,36 @@ const HomePage = () => {
     } else {
       // For in-progress or pending projects, could show details or redirect to status page
       console.log('Project clicked:', project);
+    }
+  };
+
+  const handleViewJob = async (project: ProjectData) => {
+    if (project.status !== 'completed') {
+      console.log('Job not completed yet:', project);
+      return;
+    }
+
+    try {
+      // Fetch the reconcile report for this job
+      const result = await jobApi.getJobById(project.job_id);
+      
+      if (result.success && result.data instanceof Blob) {
+        // Convert blob to text and store in localStorage
+        const csvText = await result.data.text();
+        localStorage.setItem('fhp_csv_data', csvText);
+        localStorage.setItem('fhp_job_id', project.job_id);
+        
+        // Navigate to review page
+        router.push('/review');
+      } else {
+        console.error('Failed to fetch reconcile report:', result.error);
+        // Fallback: just navigate to review page
+        router.push('/review');
+      }
+    } catch (error) {
+      console.error('Error fetching job data:', error);
+      // Fallback: just navigate to review page
+      router.push('/review');
     }
   };
 
@@ -233,8 +279,14 @@ const HomePage = () => {
 
         {/* Projects Table */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-900">Your Projects</h3>
+            {refreshing && (
+              <div className="flex items-center text-sm text-gray-500">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                Updating...
+              </div>
+            )}
           </div>
           
           {projects.length === 0 ? (
@@ -263,16 +315,19 @@ const HomePage = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {projects.map((project) => (
                     <tr 
-                      key={project.jobId} 
-                      className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() => handleProjectClick(project)}
+                      key={project.job_id} 
+                      className="hover:bg-gray-50"
                     >
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td 
+                        className="px-6 py-4 whitespace-nowrap cursor-pointer"
+                        onClick={() => handleProjectClick(project)}
+                      >
                         <div className="text-sm font-medium text-gray-900">{project.projectName}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -294,8 +349,23 @@ const HomePage = () => {
                               style={{ width: `${project.progress}%` }}
                             ></div>
                           </div>
-                          <span className="text-sm text-gray-600">{project.progress}%</span>
+                          <span className="text-sm text-gray-600">{Math.round(project.progress)}%</span>
                         </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        {project.status === 'completed' ? (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleViewJob(project);
+                            }}
+                            className="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-md transition-colors"
+                          >
+                            View
+                          </button>
+                        ) : (
+                          <span className="text-gray-400 text-sm">-</span>
+                        )}
                       </td>
                     </tr>
                   ))}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2} from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 interface LoadingPopupProps {
   isVisible: boolean;
@@ -11,37 +11,27 @@ interface LoadingPopupProps {
 }
 
 interface JobStatus {
+  job_id: string;
   status: 'pending' | 'processing' | 'completed' | 'failed';
-  message?: string;
+  progress: number;
+  message: string;
+  result?: any;
+  created_at?: string;
+  updated_at?: string;
+  pdf_path?: string;
+  fact_file_path?: string;
+  output_dir?: string;
 }
 
 export default function LoadingPopup({ isVisible, jobId, onComplete, onError }: LoadingPopupProps) {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [jobStatus, setJobStatus] = useState<JobStatus>({ status: 'pending' });
+  const [jobStatus, setJobStatus] = useState<JobStatus>({ 
+    job_id: jobId,
+    status: 'pending',
+    progress: 0,
+    message: 'Job created, waiting to start processing'
+  });
 
-  const processingSteps = [
-    'Processing document content',
-    'Analyzing grammar issues',
-    'Resolving technical problems'
-  ];
-
-  // Simulate step progression
-  useEffect(() => {
-    if (!isVisible) return;
-
-    const stepInterval = setInterval(() => {
-      setCurrentStep((prev) => {
-        if (prev < processingSteps.length - 1) {
-          return prev + 1;
-        }
-        return prev;
-      });
-    }, 2000);
-
-    return () => clearInterval(stepInterval);
-  }, [isVisible, processingSteps.length]);
-
-  // Check job status every 10 seconds
+  // Check job status every 3 seconds for more responsive updates
   useEffect(() => {
     if (!isVisible || !jobId) return;
 
@@ -53,13 +43,29 @@ export default function LoadingPopup({ isVisible, jobId, onComplete, onError }: 
           throw new Error('Failed to check job status');
         }
 
-        const data: JobStatus = await response.json();
-        setJobStatus(data);
-
-        if (data.status === 'completed') {
+        // Check if response is 206 (completed with CSV file)
+        if (response.status === 206) {
+          // Job completed with CSV file
+          setJobStatus(prev => ({
+            ...prev,
+            status: 'completed',
+            progress: 100,
+            message: '🎉 Document analysis completed successfully! All processes finished.'
+          }));
           onComplete();
-        } else if (data.status === 'failed') {
-          onError(data.message || 'Job processing failed');
+          return;
+        }
+
+        // Regular JSON response
+        const data = await response.json();
+        if (data.success && data.data) {
+          setJobStatus(data.data);
+          
+          if (data.data.status === 'completed') {
+            onComplete();
+          } else if (data.data.status === 'failed') {
+            onError(data.data.message || 'Job processing failed');
+          }
         }
       } catch (error) {
         console.error('Error checking job status:', error);
@@ -70,8 +76,8 @@ export default function LoadingPopup({ isVisible, jobId, onComplete, onError }: 
     // Check immediately
     checkJobStatus();
 
-    // Then check every 10 seconds
-    const statusInterval = setInterval(checkJobStatus, 10000);
+    // Then check every 3 seconds for more responsive updates
+    const statusInterval = setInterval(checkJobStatus, 3000);
 
     return () => clearInterval(statusInterval);
   }, [isVisible, jobId, onComplete, onError]);
@@ -94,31 +100,37 @@ export default function LoadingPopup({ isVisible, jobId, onComplete, onError }: 
           Analyzing Your Document
         </h2>
 
-        {/* Description */}
-        <p className="text-base mb-6" style={{ color: 'var(--color-medium-gray)' }}>
-          Our AI is carefully examining your document for grammar and technical issues. This usually takes 2-3 minutes. ({jobStatus.status})
-        </p>
+        {/* Progress Bar */}
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium" style={{ color: 'var(--color-medium-gray)' }}>
+              Progress
+            </span>
+            <span className="text-sm font-bold" style={{ color: 'var(--color-accent)' }}>
+              {Math.round(jobStatus.progress)}%
+            </span>
+          </div>
+          
+          {/* Progress Bar Container */}
+          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+            <div 
+              className="h-full rounded-full transition-all duration-500 ease-out"
+              style={{ 
+                backgroundColor: 'var(--color-accent)',
+                width: `${jobStatus.progress}%`
+              }}
+            />
+          </div>
+        </div>
 
-        {/* Processing Steps */}
-        <div className="space-y-3 mb-6">
-          {processingSteps.map((step, index) => (
-            <div key={index} className="flex items-center justify-center space-x-3">
-              <div 
-                className={`w-3 h-3 rounded-full ${
-                  index <= currentStep ? 'bg-green-500' : 'bg-gray-300'
-                }`}
-              />
-              <span 
-                className={`text-sm ${
-                  index <= currentStep 
-                    ? 'text-green-600 font-medium' 
-                    : 'text-gray-400'
-                }`}
-              >
-                {step}
-              </span>
-            </div>
-          ))}
+        {/* Current Status Message */}
+        <div className="mb-6">
+          <p className="text-base font-medium mb-2" style={{ color: 'var(--color-dark-gray)' }}>
+            Current Status
+          </p>
+          <p className="text-sm" style={{ color: 'var(--color-medium-gray)' }}>
+            {jobStatus.message || 'Processing...'}
+          </p>
         </div>
 
         {/* Job Status */}
@@ -126,9 +138,12 @@ export default function LoadingPopup({ isVisible, jobId, onComplete, onError }: 
           Job ID: {jobId}
         </div>
 
-        {/* Instruction */}
+        {/* Status-specific instruction */}
         <p className="text-sm mt-4" style={{ color: 'var(--color-light-gray)' }}>
-          Please don&apos;t close this window
+          {jobStatus.status === 'completed' 
+            ? 'Analysis complete! Redirecting to results...'
+            : 'Please don\'t close this window while processing'
+          }
         </p>
       </div>
     </div>

@@ -73,10 +73,21 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     }
   });
 
-  // Fetch CSV data from API
+  // Fetch CSV data from localStorage or API
   const fetchCSVData = async () => {
     try {
       setIsLoading(true);
+      
+      // First check if we have CSV data in localStorage (from completed job)
+      const storedCsvData = localStorage.getItem('fhp_csv_data');
+      if (storedCsvData) {
+        console.log('Using stored CSV data from completed job');
+        setCsvData(storedCsvData);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Fallback to API if no stored data
       const response = await fetch('/api/review-data');
       if (!response.ok) {
         throw new Error('Failed to fetch CSV data');

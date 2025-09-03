@@ -12,6 +12,12 @@ export const config = {
     analysis: '/api/analysis',
     pdf: '/api/pdf',
     jobs: '/api/jobs',
+    // New backend endpoints
+    upload: '/api/upload',
+    jobById: '/api/job',
+    generatePdf: '/api/generate-pdf',
+    jobFiles: '/api/job/files',
+    jobFile: '/api/job/file',
   },
   
   // File upload settings

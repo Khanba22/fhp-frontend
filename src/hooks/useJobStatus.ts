@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { jobApi, JobStatus } from '@/utils/api';
+import { jobApi, JobStatus, UploadResponse } from '@/utils/api';
 
 interface UseJobStatusReturn {
   isLoading: boolean;
@@ -14,6 +14,7 @@ interface UseJobStatusReturn {
   checkExistingJob: () => void;
   retryJob: () => void;
   goBackToUpload: () => void;
+  clearJobData: () => void;
 }
 
 const JOB_ID_KEY = 'fhp_job_id';
@@ -27,10 +28,74 @@ export function useJobStatus(): UseJobStatusReturn {
   const [jobId, setJobId] = useState<string | null>(null);
   const router = useRouter();
 
+  const checkExistingJob = useCallback(async () => {
+    const existingJobId = localStorage.getItem(JOB_ID_KEY);
+    const existingJobStatus = localStorage.getItem(JOB_STATUS_KEY);
+
+    if (existingJobId && existingJobStatus) {
+      try {
+        const status: JobStatus = JSON.parse(existingJobStatus);
+        
+        if (status.status === 'completed') {
+          // Job was already completed, clean up and redirect
+          localStorage.removeItem(JOB_ID_KEY);
+          localStorage.removeItem(JOB_STATUS_KEY);
+          router.push('/review');
+        } else if (status.status === 'failed') {
+          // Job failed, clean up and show error
+          localStorage.removeItem(JOB_ID_KEY);
+          localStorage.removeItem(JOB_STATUS_KEY);
+          setErrorMessage(status.message || 'Job processing failed');
+          setShowErrorScreen(true);
+        } else if (status.status === 'pending' || status.status === 'processing') {
+          // Check if the job is actually still active by querying the backend
+          try {
+            const result = await jobApi.getStatus(existingJobId);
+            
+            if (result.success && result.data && !(result.data instanceof Blob)) {
+              const currentStatus = result.data as JobStatus;
+              
+              if (currentStatus.status === 'completed') {
+                // Job completed while we were away, clean up and redirect
+                localStorage.removeItem(JOB_ID_KEY);
+                localStorage.removeItem(JOB_STATUS_KEY);
+                router.push('/review');
+              } else if (currentStatus.status === 'failed') {
+                // Job failed while we were away, clean up and show error
+                localStorage.removeItem(JOB_ID_KEY);
+                localStorage.removeItem(JOB_STATUS_KEY);
+                setErrorMessage(currentStatus.message || 'Job processing failed');
+                setShowErrorScreen(true);
+              } else {
+                // Job is still active, show loading popup
+                setJobId(existingJobId);
+                setShowLoadingPopup(true);
+              }
+            } else {
+              // Job not found or error, clean up old data
+              localStorage.removeItem(JOB_ID_KEY);
+              localStorage.removeItem(JOB_STATUS_KEY);
+            }
+          } catch (error) {
+            console.error('Error checking existing job status:', error);
+            // Clean up old data if we can't verify the job status
+            localStorage.removeItem(JOB_ID_KEY);
+            localStorage.removeItem(JOB_STATUS_KEY);
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing job status:', error);
+        // Clean up corrupted data
+        localStorage.removeItem(JOB_ID_KEY);
+        localStorage.removeItem(JOB_STATUS_KEY);
+      }
+    }
+  }, [router]);
+
   // Check for existing job on mount
   useEffect(() => {
     checkExistingJob();
-  }, []);
+  }, [checkExistingJob]);
 
   // Check job status every 10 seconds when popup is visible
   useEffect(() => {
@@ -44,7 +109,30 @@ export function useJobStatus(): UseJobStatusReturn {
           throw new Error(result.error || 'Failed to check job status');
         }
 
-        const data: JobStatus = result.data!;
+        // Check if we received a Blob (206 response with CSV file)
+        if (result.data instanceof Blob) {
+          // Job completed with CSV file - convert to text and store
+          const csvText = await result.data.text();
+          localStorage.setItem('fhp_csv_data', csvText);
+          localStorage.setItem(JOB_STATUS_KEY, JSON.stringify({ 
+            status: 'completed', 
+            progress: 100,
+            message: 'Analysis completed successfully'
+          }));
+          
+          // Clean up and redirect to review page
+          localStorage.removeItem(JOB_ID_KEY);
+          setShowLoadingPopup(false);
+          setIsLoading(false);
+          setJobId(null);
+          
+          // Redirect to review page
+          router.push('/review');
+          return;
+        }
+
+        // Regular JSON response
+        const data: JobStatus = result.data as JobStatus;
         
         // Update localStorage
         localStorage.setItem(JOB_STATUS_KEY, JSON.stringify(data));
@@ -96,8 +184,8 @@ export function useJobStatus(): UseJobStatusReturn {
         throw new Error(result.error || 'Failed to start job');
       }
 
-      const data = result.data!;
-      const newJobId = data.jobId;
+      const data: UploadResponse = result.data!;
+      const newJobId = data.job_id;
 
       if (!newJobId) {
         throw new Error('No job ID received from server');
@@ -118,38 +206,7 @@ export function useJobStatus(): UseJobStatusReturn {
     }
   }, []);
 
-  const checkExistingJob = useCallback(() => {
-    const existingJobId = localStorage.getItem(JOB_ID_KEY);
-    const existingJobStatus = localStorage.getItem(JOB_STATUS_KEY);
-
-    if (existingJobId && existingJobStatus) {
-      try {
-        const status: JobStatus = JSON.parse(existingJobStatus);
-        
-        if (status.status === 'completed') {
-          // Job was already completed, clean up and redirect
-          localStorage.removeItem(JOB_ID_KEY);
-          localStorage.removeItem(JOB_STATUS_KEY);
-          router.push('/review');
-        } else if (status.status === 'failed') {
-          // Job failed, clean up and show error
-          localStorage.removeItem(JOB_ID_KEY);
-          localStorage.removeItem(JOB_STATUS_KEY);
-          setErrorMessage(status.message || 'Job processing failed');
-          setShowErrorScreen(true);
-        } else {
-          // Job is still pending or processing, show loading popup
-          setJobId(existingJobId);
-          setShowLoadingPopup(true);
-        }
-      } catch (error) {
-        console.error('Error parsing job status:', error);
-        // Clean up corrupted data
-        localStorage.removeItem(JOB_ID_KEY);
-        localStorage.removeItem(JOB_STATUS_KEY);
-      }
-    }
-  }, [router]);
+ 
 
   const retryJob = useCallback(() => {
     setShowErrorScreen(false);
@@ -166,6 +223,20 @@ export function useJobStatus(): UseJobStatusReturn {
     setIsLoading(false);
   }, []);
 
+  const clearJobData = useCallback(() => {
+    // Clear any existing job data from localStorage
+    localStorage.removeItem(JOB_ID_KEY);
+    localStorage.removeItem(JOB_STATUS_KEY);
+    localStorage.removeItem('fhp_csv_data');
+    
+    // Reset state
+    setJobId(null);
+    setShowLoadingPopup(false);
+    setShowErrorScreen(false);
+    setErrorMessage('');
+    setIsLoading(false);
+  }, []);
+
   return {
     isLoading,
     showLoadingPopup,
@@ -176,5 +247,6 @@ export function useJobStatus(): UseJobStatusReturn {
     checkExistingJob,
     retryJob,
     goBackToUpload,
+    clearJobData,
   };
 }

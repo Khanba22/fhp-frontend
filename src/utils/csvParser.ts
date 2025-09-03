@@ -4,6 +4,7 @@ export interface CSVRow {
   proposed_revision: string;
   justification: string;
   edit_type: string;
+  diff_output?: string; // HTML string with styled diff output
 }
 
 export interface RagRow extends CSVRow {
@@ -81,7 +82,8 @@ export function parseRawCSV(csvString: string): CSVRow[] {
         original_text: cleanFields[1] || '',
         proposed_revision: cleanFields[2] || '',
         justification: cleanFields[3] || '',
-        edit_type: cleanFields[4] || ''
+        edit_type: cleanFields[4] || '',
+        diff_output: cleanFields[5] || '' // Optional diff output field
       };
       
       // Basic validation - only filter out obviously broken rows

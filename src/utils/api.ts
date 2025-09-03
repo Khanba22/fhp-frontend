@@ -3,19 +3,22 @@
 import { config } from '../../config';
 
 export interface JobStatus {
-  jobId: string;
+  job_id: string;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   progress: number;
   message: string;
-  result?: any;
+  result?: unknown;
   created_at?: string;
   updated_at?: string;
+  pdf_path?: string;
+  fact_file_path?: string;
+  output_dir?: string;
 }
 
 export interface AnalysisResult {
-  jobId: string;
+  job_id: string;
   status: string;
-  categorized_issues: Record<string, any[]>;
+  categorized_issues: Record<string, unknown[]>;
   document_name: string;
   total_issues: number;
   analysis_date: string;
@@ -23,8 +26,26 @@ export interface AnalysisResult {
 
 export interface JobStartResponse {
   success: boolean;
-  jobId: string;
+  job_id: string;
   message: string;
+}
+
+export interface UploadResponse {
+  job_id: string;
+  status: string;
+  message: string;
+  pdf_path: string;
+  fact_file_path?: string;
+}
+
+export interface JobFile {
+  filename: string;
+  size: number;
+  type: string;
+}
+
+export interface JobFilesResponse {
+  files: JobFile[];
 }
 
 export interface ApiResponse<T> {
@@ -65,8 +86,8 @@ async function apiCall<T>(
 
 // Job management API calls
 export const jobApi = {
-  // Start a new job
-  async start(files: FormData): Promise<ApiResponse<JobStartResponse>> {
+  // Start a new job (upload documents)
+  async start(files: FormData): Promise<ApiResponse<UploadResponse>> {
     try {
       const response = await fetch(config.api.jobStart, {
         method: 'POST',
@@ -90,8 +111,103 @@ export const jobApi = {
   },
 
   // Get job status
-  async getStatus(jobId: string): Promise<ApiResponse<JobStatus>> {
-    return apiCall<JobStatus>(`${config.api.jobStatus}?jobId=${jobId}`);
+  async getStatus(jobId: string): Promise<ApiResponse<JobStatus | Blob>> {
+    try {
+      const response = await fetch(`${config.api.jobStatus}?jobId=${jobId}`, {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      // Check if response is 206 (Partial Content) - job completed with file
+      if (response.status === 206) {
+        const contentType = response.headers.get('content-type');
+        if (contentType?.includes('text/csv')) {
+          // Return CSV file as Blob
+          const csvBlob = await response.blob();
+          return {
+            success: true,
+            data: csvBlob,
+            error: undefined
+          };
+        }
+      }
+
+      // Regular JSON response
+      const data = await response.json();
+      return {
+        success: true,
+        data: data,
+        error: undefined
+      };
+    } catch (error) {
+      return {
+        success: false,
+        data: undefined,
+        error: error instanceof Error ? error.message : 'Failed to get job status'
+      };
+    }
+  },
+
+  // Get job by ID (returns reconcile.csv if completed)
+  async getJobById(jobId: string): Promise<ApiResponse<JobStatus | Blob>> {
+    try {
+      const response = await fetch(`${config.api.jobById}/${jobId}`, {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      // Check if response is CSV (completed job) or JSON (job status)
+      const contentType = response.headers.get('content-type');
+      if (contentType?.includes('text/csv')) {
+        const blob = await response.blob();
+        return { success: true, data: blob };
+      } else {
+        const data = await response.json();
+        return { success: true, data };
+      }
+    } catch (error) {
+      console.error('Get job by ID failed:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get job',
+      };
+    }
+  },
+
+  // Get job files
+  async getJobFiles(jobId: string): Promise<ApiResponse<JobFilesResponse>> {
+    return apiCall<JobFilesResponse>(`${config.api.jobFiles}/${jobId}`);
+  },
+
+  // Download specific job file
+  async downloadJobFile(jobId: string, filename: string): Promise<ApiResponse<Blob>> {
+    try {
+      const response = await fetch(`${config.api.jobFile}/${jobId}/${filename}`, {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+      return { success: true, data: blob };
+    } catch (error) {
+      console.error('Download job file failed:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to download file',
+      };
+    }
   },
 
   // Delete a job
@@ -109,21 +225,39 @@ export const jobApi = {
 
 // Analysis API calls
 export const analysisApi = {
-  // Get analysis results
-  async getResults(jobId: string): Promise<ApiResponse<AnalysisResult>> {
-    return apiCall<AnalysisResult>(`${config.api.analysis}?jobId=${jobId}`);
+  // Get analysis results (reconcile.csv)
+  async getResults(jobId: string): Promise<ApiResponse<Blob>> {
+    try {
+      const response = await fetch(`${config.api.jobById}/${jobId}`, {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+      return { success: true, data: blob };
+    } catch (error) {
+      console.error('Get analysis results failed:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get analysis results',
+      };
+    }
   },
 
   // Generate PDF report
   async generatePDF(jobId: string): Promise<ApiResponse<Blob>> {
     try {
-      const response = await fetch(`${config.api.pdf}?jobId=${jobId}`, {
-        method: 'POST',
+      const response = await fetch(`${config.api.generatePdf}/${jobId}`, {
+        method: 'GET',
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const blob = await response.blob();
@@ -141,8 +275,8 @@ export const analysisApi = {
 // Health check API calls
 export const healthApi = {
   // Check backend health
-  async check(): Promise<ApiResponse<{ frontend: any; backend: any }>> {
-    return apiCall<{ frontend: any; backend: any }>(config.api.health);
+  async check(): Promise<ApiResponse<{ frontend: unknown; backend: unknown }>> {
+    return apiCall<{ frontend: unknown; backend: unknown }>(config.api.health);
   },
 };
 

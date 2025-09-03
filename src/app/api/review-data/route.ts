@@ -5,7 +5,7 @@ import path from 'path';
 export async function GET() {
   try {
     // Read the CSV file from the API folder
-    const csvPath = path.join(process.cwd(), 'src/app/api/reconcile_v0.csv');
+    const csvPath = path.join(process.cwd(), 'src/app/api/reconcile_v1.csv');
     const csvData = fs.readFileSync(csvPath, 'utf-8');
     
     // Return the raw CSV data

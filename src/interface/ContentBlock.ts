@@ -8,5 +8,6 @@ export interface ContentBlock {
     wordLevelChanges: WordChange[];
     justification?: string;
     editTypes: string[];
+    diffOutput?: string; // HTML string with styled diff output
   }
 

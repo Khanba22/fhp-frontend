@@ -1,16 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header} from "@/UI";
 import ReviewPage from "@/components/ReviewPage";
 import { RagTable } from "@/UI";
 import ExecutiveSummary from "@/components/ExecutiveSummary";
+import PDFViewer from "@/components/PDFViewer";
 import { useEditor } from "@/contexts/useEditor";
 
 export default function ReviewSummaryPage() {
   const [activeTab, setActiveTab] = useState<
-    "content-suggestions" | "rag-table" | "executive-summary"
+    "content-suggestions" | "rag-table" | "executive-summary" | "pdf-viewer"
   >("content-suggestions");
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [isLoadingPdf, setIsLoadingPdf] = useState(false);
   
   const { 
     reviewChanges, 
@@ -23,6 +26,52 @@ export default function ReviewSummaryPage() {
     isLoading 
   } = useEditor();
 
+  // Function to load the generated PDF
+  const loadGeneratedPDF = async () => {
+    try {
+      setIsLoadingPdf(true);
+      
+      // Get job ID from localStorage
+      const jobId = localStorage.getItem('fhp_job_id');
+      if (!jobId) {
+        console.error('No job ID found in localStorage');
+        return;
+      }
+
+      // Fetch the generated PDF
+      const response = await fetch(`/api/review-pdf?jobId=${jobId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch generated PDF');
+      }
+
+      // Create blob URL for the PDF
+      const pdfBlob = await response.blob();
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      setPdfUrl(blobUrl);
+      
+    } catch (error) {
+      console.error('Error loading generated PDF:', error);
+    } finally {
+      setIsLoadingPdf(false);
+    }
+  };
+
+  // Load PDF when PDF viewer tab is selected
+  useEffect(() => {
+    if (activeTab === 'pdf-viewer' && !pdfUrl && !isLoadingPdf) {
+      loadGeneratedPDF();
+    }
+  }, [activeTab, pdfUrl, isLoadingPdf]);
+
+  // Cleanup blob URL on unmount
+  useEffect(() => {
+    return () => {
+      if (pdfUrl && pdfUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(pdfUrl);
+      }
+    };
+  }, [pdfUrl]);
+
   // Convert CSVRow data to ContentBlock format for ReviewPage component
   const contentBlocks = reviewChanges.map((row, index) => ({
     id: (index + 1).toString(),
@@ -31,7 +80,8 @@ export default function ReviewSummaryPage() {
     originalText: row.original_text || '',
     wordLevelChanges: [], // We'll handle this in the createInlineText function
     justification: row.justification || '',
-    editTypes: row.edit_type ? row.edit_type.split(',').map(type => type.trim()) : []
+    editTypes: row.edit_type ? row.edit_type.split(',').map(type => type.trim()) : [],
+    diffOutput: row.diff_output || '' // HTML string with styled diff output
   }));
 
   // Function to create inline text with strikethrough and corrected text
@@ -89,7 +139,7 @@ export default function ReviewSummaryPage() {
         setLoading={() => {}}
         setActiveTab={(tab: string) =>
           setActiveTab(
-            tab as "content-suggestions" | "rag-table" | "executive-summary"
+            tab as "content-suggestions" | "rag-table" | "executive-summary" | "pdf-viewer"
           )
         }
         loading={isLoading}
@@ -105,6 +155,32 @@ export default function ReviewSummaryPage() {
     ),
     "executive-summary": (
       <ExecutiveSummary />
+    ),
+    "pdf-viewer": (
+      <div className="w-full h-[calc(100vh-200px)]">
+        {isLoadingPdf ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading generated PDF...</p>
+            </div>
+          </div>
+        ) : pdfUrl ? (
+          <PDFViewer pdfUrl={pdfUrl} fileName="Analysis Report" />
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <p className="text-gray-600 mb-4">No PDF available</p>
+              <button
+                onClick={loadGeneratedPDF}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Load PDF
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     ),
   };
 
@@ -156,6 +232,16 @@ export default function ReviewSummaryPage() {
             }`}
           >
             Executive Summary
+          </button>
+          <button
+            onClick={() => setActiveTab("pdf-viewer")}
+            className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+              activeTab === "pdf-viewer"
+                ? "bg-blue-100 text-blue-800"
+                : "bg-gray-800 text-white hover:bg-gray-700"
+            }`}
+          >
+            Generated PDF
           </button>
         </div>
 
